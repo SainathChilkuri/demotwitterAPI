@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 module.exports =(req,res,next)=>{
-    console.log("Check Token Validation");
+    console.log("Check Token Validation Hello");
     if(!req.get("Authorization")){
         const error = Error("Auth Header is Missing");
         error.statusCode = 422;
