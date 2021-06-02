@@ -1,5 +1,6 @@
 const Tweets = require('../models/tweet');
 exports.getAllTweet = (req,res,next) =>{
+     console.log("Master")
     Tweets.find().then(result=>{
        res.status(200).json({
            message:"Data Found",
