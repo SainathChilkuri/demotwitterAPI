@@ -1,5 +1,7 @@
 const express = require('express');
+const helmet = require('helmet');
 const app = express();
+app.use(helmet());
 const mongoose = require('mongoose');
 const router = require('./routes/route');
 const uroute = require('./routes/user_route')
@@ -11,7 +13,7 @@ app.use((req,res,next)=>{
     res.setHeader('Access-Control-Allow-Headers',"Content-Type, Authorization");
     next();
 })
-app.use('/v1/tweets',router);
+app.use('/v1/posts',router);
 app.use('/v1/user',uroute);
 app.use((error,req,res,next)=>{
     const status = error.statusCode || 500;
@@ -22,9 +24,9 @@ app.use((error,req,res,next)=>{
         message:message
     })
 })
-mongoose.connect('mongodb+srv://sainath:SAI0000300003@tweetcluster.zm3c5.mongodb.net/tweetsDB?retryWrites=true&w=majority').then(result=>{
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@tweetcluster.zm3c5.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`).then(result=>{
     console.log(result);
-    app.listen(3000);
+    app.listen(process.env.PORT|| 3000);
 }).catch(err=>{
     console.log(err);
 })

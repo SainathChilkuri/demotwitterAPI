@@ -28,6 +28,29 @@ const userSchema = new Schema({
     password:{
         type:String,
         required:true
-    }
+    },
+    follow:{
+        followers: [
+            {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: false
+            }
+        ],
+        following: [
+            {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: false
+            }
+        ],
+    },
+    posts: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Post',
+            required: false
+        }
+    ]
 },{timestamps:true});
 module.exports = mongoose.model("User",userSchema);

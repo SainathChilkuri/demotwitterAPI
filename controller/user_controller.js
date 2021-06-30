@@ -1,5 +1,4 @@
 const User = require('../models/user');
-const Tweets = require('../models/tweet')
 const crypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 exports.registerUser=(req,res,next)=>{
@@ -23,6 +22,11 @@ exports.registerUser=(req,res,next)=>{
                     email:email,
                     mobile:mobile,
                     password:hashed,
+                    follow:{
+                        followers:[],
+                        following:[]
+                    },
+                    post:[]
                 });
                 user.save().then(result=>{
                      res.status(200).json({
@@ -59,6 +63,15 @@ exports.loginUser = (req,res,next)=>{
     const password = req.body.password;
     User.find({
         email:email
+    }).populate({
+        path:"follow.following",
+        select:"firstname lastname"
+    }).populate({
+        path:"follow.followers",
+        select:"firstname lastname"
+    })
+    .populate({
+        path:"posts",
     }).then(result=>{
         console.log(result);
         if(!result[0]){
@@ -96,27 +109,27 @@ exports.loginUser = (req,res,next)=>{
         }
     })
 }
-exports.getMyTweet = (req,res,next)=>{
+// exports.getMyTweet = (req,res,next)=>{
    
-  const id= req.body.id;
-  if(id!=req.userId){
-      const error = Error("Invalid Authorization");
-    error.statusCode = 422;
-   throw error;
-  }
-  Tweets.find({userId:id}).then(result=>{
-     res.status(200).json({
-         error:0,
-         status:200,
-         message:"Successfully fetched tweets",
-         tweets: result
-     })
-  }).catch(err=>{
-    err.statusCode = 422;
-    err.message = "Something Went Wrong";
-    next(err);
-  })
-}
+//   const id= req.body.id;
+//   if(id!=req.userId){
+//       const error = Error("Invalid Authorization");
+//     error.statusCode = 422;
+//    throw error;
+//   }
+//   Tweets.find({userId:id}).then(result=>{
+//      res.status(200).json({
+//          error:0,
+//          status:200,
+//          message:"Successfully fetched tweets",
+//          tweets: result
+//      })
+//   }).catch(err=>{
+//     err.statusCode = 422;
+//     err.message = "Something Went Wrong";
+//     next(err);
+//   })
+// }
 exports.deleteAccount = (req,res,next)=>{
     const id = req.body.userId;
     const tokenUserId = req.userId;
@@ -151,4 +164,57 @@ exports.deleteAccount = (req,res,next)=>{
         next(err);
     })
 
+}
+exports.followUser=async(req,res,next)=>{
+ const userID = req.body.userId;
+ const followUserID = req.body.followUserId;
+
+ try{
+    if(req.userId != userID){
+        const error = new Error("Invalid Authorization");
+        error.statusCode = 422;
+        throw error;
+    }
+    const user =await User.findOne({
+        _id:userID
+    })
+    if(!user){
+        const error = new Error("user not found");
+        error.statusCode = 422;
+        throw error;
+    }
+    const follow = await User.findOne({
+        _id:followUserID
+    });
+    if(!follow){
+        const error = new Error("user not found");
+        error.statusCode = 422;
+        throw error;
+    }
+   if(user.follow.following.includes(follow._id)){
+    const error = new Error("Already Followed");
+    error.statusCode = 422;
+    throw error;
+   }
+    user.follow.following.push(follow._id);
+    follow.follow.followers.push(user._id);
+    const save = await user.save();
+    const followSave = await follow.save();
+    const getUser = await User.find({
+        _id:userID
+    }).populate({
+        path:"follow.following",
+        select:"firstname lastname"
+    }).populate({
+        path:"follow.followers",
+        select:"firstname lastname"
+    });
+    res.status(200).json({
+        user: getUser
+    })
+ }catch(error){
+     error.statusCode = 422;
+     next(error);
+ }
+ 
 }
