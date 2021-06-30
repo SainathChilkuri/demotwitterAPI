@@ -14,7 +14,7 @@ app.use((req,res,next)=>{
     next();
 })
 app.use('/v1/posts',router);
-app.use('/v1/user',uroute);
+app.use('/v1/users',uroute);
 app.use((error,req,res,next)=>{
     const status = error.statusCode || 500;
     const message = error.message;
