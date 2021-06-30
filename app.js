@@ -15,6 +15,11 @@ app.use((req,res,next)=>{
 })
 app.use('/v1/posts',router);
 app.use('/v1/users',uroute);
+app.use('/',(req,res,next)=>{
+    const err=Error("Route Not Found");
+    err.status = 501;
+   throw err;
+})
 app.use((error,req,res,next)=>{
     const status = error.statusCode || 500;
     const message = error.message;
